@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utility Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        /* Base tab button styles for smooth transitions */
+        .tab-button {
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, border-bottom 0.2s ease;
+        }
+        /* Custom styles for active tab */
+        .tab-button.active {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            border-bottom: 3px solid #3b82f6; /* Slightly thicker border */
+            transform: translateY(-2px); /* Slight lift */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* More pronounced shadow */
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1a202c; /* Tailwind gray-900 */
+            color: #e2e8f0; /* Tailwind gray-200 */
+        }
+
+        .dark-mode .container {
+            background-color: #2d3748; /* Tailwind gray-800 */
+            /* Removed box-shadow for full-screen look */
+        }
+
+        .dark-mode h1, .dark-mode label {
+            color: #cbd5e0; /* Tailwind gray-300 */
+        }
+
+        .dark-mode input[type="number"],
+        .dark-mode input[type="text"] {
+            background-color: #4a5568; /* Tailwind gray-700 */
+            border-color: #616e7f; /* Tailwind gray-600 */
+            color: #e2e8f0; /* Tailwind gray-200 */
+        }
+        .dark-mode input::placeholder {
+            color: #a0aec0; /* Tailwind gray-500 */
+        }
+        .dark-mode input[type="checkbox"] {
+            background-color: #4a5568;
+            border-color: #616e7f;
+        }
+        .dark-mode input[type="checkbox"]:checked {
+            background-color: #3b82f6; /* blue-500 */
+            border-color: #3b82f6;
+        }
+
+        .dark-mode .tab-button {
+            color: #cbd5e0; /* Tailwind gray-300 */
+        }
+        .dark-mode .tab-button:hover {
+            background-color: #4a5568; /* Tailwind gray-700 */
+        }
+        .dark-mode .tab-button.active {
+            background-color: #2b6cb0; /* blue-700 */
+            border-bottom-color: #2b6cb0;
+            /* Removed box-shadow for full-screen look */
+        }
+        /* Coin Flipper specific styles for animation */
+        #coinResult.flipping {
+            animation: flipAnimation 0.5s ease-in-out forwards;
+        }
+
+        @keyframes flipAnimation {
+            0% { transform: translateY(0) rotateY(0deg) scale(1); opacity: 1; }
+            25% { transform: translateY(-30px) rotateY(90deg) scale(1.1); opacity: 0.8; }
+            50% { transform: translateY(-50px) rotateY(180deg) scale(1.2); opacity: 0.7; }
+            75% { transform: translateY(-30px) rotateY(270deg) scale(1.1); opacity: 0.8; }
+            100% { transform: translateY(0) rotateY(360deg) scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen bg-gray-100 p-4">
+    <!-- Changed container class for full screen -->
+    <div class="container bg-white w-full min-h-screen p-8 relative">
+        <!-- Dark Mode Toggle Button -->
+        <button
+            id="darkModeToggle"
+            class="absolute top-4 right-4 p-2 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition duration-200"
+            onclick="toggleDarkMode()"
+            aria-label="Toggle dark mode"
+        >
+            ☀️
+        </button>
+
+        <!-- Tab Buttons -->
+        <div class="flex border-b border-gray-200 mb-6 flex-wrap">
+            <button
+                id="discountTabBtn"
+                class="tab-button flex-1 py-3 px-4 text-center font-semibold text-gray-700 rounded-tl-lg hover:bg-gray-100 transition duration-200 active"
+                onclick="showTab('discountCalculator')"
+            >
+                🛍️ Discount
+            </button>
+            <button
+                id="timeTabBtn"
+                class="tab-button flex-1 py-3 px-4 text-center font-semibold text-gray-700 hover:bg-gray-100 transition duration-200"
+                onclick="showTab('timeConverter')"
+            >
+                ⏰ Time
+            </button>
+            <button
+                id="tipTabBtn"
+                class="tab-button flex-1 py-3 px-4 text-center font-semibold text-gray-700 hover:bg-gray-100 transition duration-200"
+                onclick="showTab('tipCalculator')"
+            >
+                💰 Tip
+            </button>
+            <button
+                id="passwordTabBtn"
+                class="tab-button flex-1 py-3 px-4 text-center font-semibold text-gray-700 hover:bg-gray-100 transition duration-200"
+                onclick="showTab('passwordGenerator')"
+            >
+                🔑 Password
+            </button>
+            <button
+                id="coinTabBtn"
+                class="tab-button flex-1 py-3 px-4 text-center font-semibold text-gray-700 rounded-tr-lg hover:bg-gray-100 transition duration-200"
+                onclick="showTab('coinFlipper')"
+            >
+                🪙 Coin
+            </button>
+        </div>
+
+        <!-- Tab Content - Discount Calculator -->
+        <div id="discountCalculator" class="tab-content">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-6 flex items-center justify-center gap-2">
+                Discount Calculator 💸
+            </h1>
+
+            <div class="mb-5 text-left">
+                <label for="originalPrice" class="block text-gray-700 text-lg font-semibold mb-2">Original Price ($):</label>
+                <input
+                    type="number"
+                    id="originalPrice"
+                    placeholder="Enter original price"
+                    min="0"
+                    step="0.01"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                />
+            </div>
+
+            <div class="mb-6 text-left">
+                <label for="discountPercentage" class="block text-gray-700 text-lg font-semibold mb-2">Discount Percentage (%):</label>
+                <input
+                    type="number"
+                    id="discountPercentage"
+                    placeholder="Enter discount percentage"
+                    min="0"
+                    max="100"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                />
+            </div>
+
+            <div class="flex justify-between gap-4">
+                <button
+                    onclick="calculateDiscount()"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                >
+                    Calculate Discount
+                </button>
+                <button
+                    onclick="resetDiscountCalculator()"
+                    class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                >
+                    Reset
+                </button>
+            </div>
+
+            <div id="result" class="mt-8 text-xl font-bold text-green-600"></div>
+            <div id="savings" class="mt-2 text-lg font-semibold text-purple-600"></div>
+        </div>
+
+        <!-- Tab Content - Time Converter -->
+        <div id="timeConverter" class="tab-content hidden">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-6 flex items-center justify-center gap-2">
+                Time Converter ⏳
+            </h1>
+
+            <div class="mb-5 text-left">
+                <label for="time24hr" class="block text-gray-700 text-lg font-semibold mb-2">24-Hour Time (e.g., 14:30):</label>
+                <input
+                    type="text"
+                    id="time24hr"
+                    placeholder="HH:MM"
+                    pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+                    title="Enter time in HH:MM format (e.g., 14:30)"
+                    maxlength="5"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                    oninput="formatTimeInput(this)"
+                />
+            </div>
+
+            <div class="flex justify-between gap-4">
+                <button
+                    onclick="convertTime()"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                >
+                    Convert Time
+                </button>
+                <button
+                    onclick="resetTimeConverter()"
+                    class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                >
+                    Reset
+                </button>
+            </div>
+
+            <div id="convertedTime" class="mt-8 text-xl font-bold text-green-600"></div>
+        </div>
+
+        <!-- Tab Content - Tip Calculator -->
+        <div id="tipCalculator" class="tab-content hidden">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-6 flex items-center justify-center gap-2">
+                Tip Calculator 💰
+            </h1>
+
+            <div class="mb-5 text-left">
+                <label for="billAmount" class="block text-gray-700 text-lg font-semibold mb-2">Bill Amount ($):</label>
+                <input
+                    type="number"
+                    id="billAmount"
+                    placeholder="Enter bill amount"
+                    min="0"
+                    step="0.01"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                />
+            </div>
+
+            <div class="mb-5 text-left">
+                <label for="tipPercentage" class="block text-gray-700 text-lg font-semibold mb-2">Tip Percentage (%):</label>
+                <input
+                    type="number"
+                    id="tipPercentage"
+                    placeholder="e.g., 15"
+                    min="0"
+                    max="100"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                />
+            </div>
+
+            <div class="mb-6 text-left">
+                <label for="numPeople" class="block text-gray-700 text-lg font-semibold mb-2">Number of People:</label>
+                <input
+                    type="number"
+                    id="numPeople"
+                    placeholder="e.g., 2"
+                    min="1"
+                    step="1"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                />
+            </div>
+
+            <div class="flex justify-between gap-4">
+                <button
+                    onclick="calculateTip()"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                >
+                    Calculate Tip
+                </button>
+                <button
+                    onclick="resetTipCalculator()"
+                    class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                >
+                    Reset
+                </button>
+            </div>
+
+
+            <div id="tipResult" class="mt-8 text-xl font-bold text-green-600"></div>
+            <div id="totalBillResult" class="mt-2 text-lg font-semibold text-purple-600"></div>
+            <div id="perPersonResult" class="mt-2 text-lg font-semibold text-blue-600"></div>
+        </div>
+
+        <!-- Tab Content - Random Password Generator -->
+        <div id="passwordGenerator" class="tab-content hidden">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-6 flex items-center justify-center gap-2">
+                Password Generator 🔑
+            </h1>
+
+            <div class="mb-5 text-left">
+                <label for="passwordLength" class="block text-gray-700 text-lg font-semibold mb-2">Password Length:</label>
+                <input
+                    type="number"
+                    id="passwordLength"
+                    value="12"
+                    min="4"
+                    max="64"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                />
+            </div>
+
+            <div class="mb-4 text-left space-y-2">
+                <div class="flex items-center">
+                    <input type="checkbox" id="includeUppercase" checked class="h-5 w-5 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="includeUppercase" class="ml-2 text-gray-700 text-lg">Include Uppercase Letters (A-Z)</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="includeLowercase" checked class="h-5 w-5 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="includeLowercase" class="ml-2 text-gray-700 text-lg">Include Lowercase Letters (a-z)</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="includeNumbers" checked class="h-5 w-5 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="includeNumbers" class="ml-2 text-gray-700 text-lg">Include Numbers (0-9)</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="includeSymbols" checked class="h-5 w-5 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="includeSymbols" class="ml-2 text-gray-700 text-lg">Include Symbols (!@#$%^&*)</label>
+                </div>
+            </div>
+
+            <div class="flex justify-between gap-4">
+                <button
+                    onclick="generatePassword()"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                >
+                    Generate Password
+                </button>
+                <button
+                    onclick="resetPasswordGenerator()"
+                    class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                >
+                    Reset
+                </button>
+            </div>
+
+            <div id="generatedPassword" class="mt-8 text-xl font-bold text-green-600 break-all"></div>
+            <button
+                id="copyPasswordBtn"
+                onclick="copyPassword()"
+                class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-sm transition duration-300 ease-in-out hidden"
+            >
+                Copy to Clipboard
+            </button>
+            <div id="copyMessage" class="mt-2 text-sm text-gray-600"></div>
+        </div>
+
+        <!-- Tab Content - Coin Flipper -->
+        <div id="coinFlipper" class="tab-content hidden">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-6 flex items-center justify-center gap-2">
+                Coin Flipper 🪙
+            </h1>
+
+            <div class="flex justify-center items-center h-32 mb-6">
+                <div id="coinResult" class="text-5xl font-extrabold text-blue-600"></div>
+            </div>
+
+            <div class="flex justify-between gap-4">
+                <button
+                    onclick="flipCoin()"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                >
+                    Flip Coin
+                </button>
+                <button
+                    onclick="resetCoinFlipper()"
+                    class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                >
+                    Reset
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Function to show/hide tabs
+        function showTab(tabId) {
+            // Get all tab content elements
+            const tabContents = document.querySelectorAll('.tab-content');
+            // Hide all tab contents
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Get all tab buttons
+            const tabButtons = document.querySelectorAll('.tab-button');
+            // Remove active class from all buttons
+            tabButtons.forEach(button => {
+                button.classList.remove('active');
+                button.classList.remove('bg-blue-500', 'text-white', 'border-b-2', 'border-blue-500');
+                // Ensure dark mode styles are correctly applied when removing active class
+                if (document.body.classList.contains('dark-mode')) {
+                    button.classList.add('text-gray-300', 'hover:bg-gray-700');
+                } else {
+                    button.classList.add('text-gray-700', 'hover:bg-gray-100');
+                }
+            });
+
+            // Show the selected tab content
+            document.getElementById(tabId).classList.remove('hidden');
+
+            // Add active class to the clicked button
+            const activeTabButton = document.querySelector(`#${tabId}TabBtn`);
+            if (activeTabButton) {
+                activeTabButton.classList.add('active');
+                activeTabButton.classList.remove('text-gray-700', 'hover:bg-gray-100', 'text-gray-300', 'hover:bg-gray-700'); // Remove both light/dark hover states
+                activeTabButton.classList.add('bg-blue-500', 'text-white', 'border-b-2', 'border-blue-500');
+            }
+        }
+
+        // --- Dark Mode Toggle Functions ---
+        function toggleDarkMode() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode ? 'enabled' : 'disabled');
+
+            // Update the sun/moon icon based on the current mode
+            const darkModeToggleBtn = document.getElementById('darkModeToggle');
+            darkModeToggleBtn.textContent = isDarkMode ? '🌙' : '☀️';
+
+            // Reapply tab button styles to ensure they reflect the current mode
+            const currentActiveTab = document.querySelector('.tab-content:not(.hidden)').id;
+            showTab(currentActiveTab); // This will reapply the correct styles
+        }
+
+        // Initialize dark mode on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'enabled') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeToggle').textContent = '🌙';
+            } else {
+                document.getElementById('darkModeToggle').textContent = '☀️';
+            }
+            // Ensure the initial tab is correctly styled based on the dark mode setting
+            showTab('discountCalculator');
+        });
+
+
+        // --- Discount Calculator Functions ---
+        function calculateDiscount() {
+            const originalPriceInput = document.getElementById('originalPrice');
+            const discountPercentageInput = document.getElementById('discountPercentage');
+            const resultDiv = document.getElementById('result');
+            const savingsDiv = document.getElementById('savings');
+
+            const originalPrice = parseFloat(originalPriceInput.value);
+            const discountPercentage = parseFloat(discountPercentageInput.value);
+
+            // Reset previous messages
+            resultDiv.textContent = '';
+            savingsDiv.textContent = '';
+            resultDiv.classList.remove('text-red-600', 'text-green-600', 'text-purple-600');
+            savingsDiv.classList.remove('text-red-600', 'text-green-600', 'text-purple-600');
+
+
+            if (isNaN(originalPrice) || originalPrice < 0) {
+                resultDiv.textContent = 'Please enter a valid original price.';
+                resultDiv.classList.add('text-red-600');
+                return;
+            }
+
+            if (isNaN(discountPercentage) || discountPercentage < 0 || discountPercentage > 100) {
+                resultDiv.textContent = 'Please enter a valid discount percentage (0-100).';
+                resultDiv.classList.add('text-red-600');
+                return;
+            }
+
+            const discountAmount = originalPrice * (discountPercentage / 100);
+            const finalPrice = originalPrice - discountAmount;
+
+            resultDiv.textContent = `Discounted Price: $${finalPrice.toFixed(2)}`;
+            resultDiv.classList.add('text-green-600');
+
+            savingsDiv.textContent = `You saved: $${discountAmount.toFixed(2)}`;
+            savingsDiv.classList.add('text-purple-600');
+        }
+
+        function resetDiscountCalculator() {
+            document.getElementById('originalPrice').value = '';
+            document.getElementById('discountPercentage').value = '';
+            document.getElementById('result').textContent = '';
+            document.getElementById('savings').textContent = '';
+
+            // Clear any error/result specific colors
+            document.getElementById('result').classList.remove('text-red-600', 'text-green-600', 'text-purple-600');
+            document.getElementById('savings').classList.remove('text-red-600', 'text-green-600', 'text-purple-600');
+        }
+
+        // --- Time Converter Functions ---
+        function formatTimeInput(input) {
+            let oldCursorPos = input.selectionStart; // Cursor position before our function potentially changes value
+            let oldInputValue = input.value; // Value before our function potentially changes value
+
+            let rawValue = input.value.replace(/\D/g, ''); // Get only digits from the *current* input value
+
+            let formattedValue = '';
+            let newCursorPos = oldCursorPos; // Initialize new cursor position
+
+            if (rawValue.length > 2) {
+                formattedValue = rawValue.substring(0, 2) + ':' + rawValue.substring(2, 4);
+            } else {
+                formattedValue = rawValue;
+            }
+
+            // Limit to HH:MM format (5 characters)
+            if (formattedValue.length > 5) {
+                formattedValue = formattedValue.substring(0, 5);
+            }
+
+            // Only update if the value has actually changed
+            if (input.value !== formattedValue) {
+                input.value = formattedValue;
+
+                // Calculate new cursor position
+                // Count digits before the old cursor position in the *original* raw value
+                let digitsBeforeOldCursor = oldInputValue.substring(0, oldCursorPos).replace(/\D/g, '').length;
+
+                // Find the corresponding position in the *new formatted* string
+                newCursorPos = digitsBeforeOldCursor;
+                if (digitsBeforeOldCursor >= 2 && formattedValue.length > 2) {
+                    // If the cursor is after the hours, and a colon exists in the formatted string
+                    newCursorPos += 1; // Account for the colon
+                }
+
+                // Clamp cursor position to ensure it's within the bounds of the new formatted string
+                newCursorPos = Math.max(0, Math.min(newCursorPos, formattedValue.length));
+                input.setSelectionRange(newCursorPos, newCursorPos);
+            }
+        }
+
+        function convertTime() {
+            const time24hrInput = document.getElementById('time24hr');
+            const convertedTimeDiv = document.getElementById('convertedTime');
+            const time24hr = time24hrInput.value.trim();
+
+            // Reset previous messages
+            convertedTimeDiv.textContent = '';
+            convertedTimeDiv.classList.remove('text-red-600', 'text-green-600');
+
+            // Regex to validate HH:MM format
+            const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+            if (!timeRegex.test(time24hr)) {
+                convertedTimeDiv.textContent = 'Please enter time in HH:MM format (e.g., 14:30).';
+                convertedTimeDiv.classList.add('text-red-600');
+                return;
+            }
+
+            const [hours24, minutes] = time24hr.split(':').map(Number);
+
+            let hours12 = hours24 % 12;
+            hours12 = hours12 === 0 ? 12 : hours12; // Convert 0 to 12 for 12 AM/PM
+            const ampm = hours24 < 12 ? 'AM' : 'PM';
+
+            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+
+            convertedTimeDiv.textContent = `12-Hour Time: ${hours12}:${formattedMinutes} ${ampm}`;
+            convertedTimeDiv.classList.add('text-green-600');
+        }
+
+        function resetTimeConverter() {
+            document.getElementById('time24hr').value = '';
+            document.getElementById('convertedTime').textContent = '';
+            document.getElementById('convertedTime').classList.remove('text-red-600', 'text-green-600');
+        }
+
+        // --- Tip Calculator Functions ---
+        function calculateTip() {
+            const billAmountInput = document.getElementById('billAmount');
+            const tipPercentageInput = document.getElementById('tipPercentage');
+            const numPeopleInput = document.getElementById('numPeople');
+
+            const tipResultDiv = document.getElementById('tipResult');
+            const totalBillResultDiv = document.getElementById('totalBillResult');
+            const perPersonResultDiv = document.getElementById('perPersonResult');
+
+            const billAmount = parseFloat(billAmountInput.value);
+            const tipPercentage = parseFloat(tipPercentageInput.value);
+            const numPeople = parseInt(numPeopleInput.value);
+
+            // Reset previous messages
+            tipResultDiv.textContent = '';
+            totalBillResultDiv.textContent = '';
+            perPersonResultDiv.textContent = '';
+            tipResultDiv.classList.remove('text-red-600', 'text-green-600');
+            totalBillResultDiv.classList.remove('text-red-600', 'text-purple-600');
+            perPersonResultDiv.classList.remove('text-red-600', 'text-blue-600');
+
+
+            if (isNaN(billAmount) || billAmount < 0) {
+                tipResultDiv.textContent = 'Please enter a valid bill amount.';
+                tipResultDiv.classList.add('text-red-600');
+                return;
+            }
+
+            if (isNaN(tipPercentage) || tipPercentage < 0 || tipPercentage > 100) {
+                tipResultDiv.textContent = 'Please enter a valid tip percentage (0-100).';
+                tipResultDiv.classList.add('text-red-600');
+                return;
+            }
+
+            if (isNaN(numPeople) || numPeople < 1) {
+                tipResultDiv.textContent = 'Please enter a valid number of people (at least 1).';
+                tipResultDiv.classList.add('text-red-600');
+                return;
+            }
+
+            const tipAmount = billAmount * (tipPercentage / 100);
+            const totalBill = billAmount + tipAmount;
+            const amountPerPerson = totalBill / numPeople;
+
+            tipResultDiv.textContent = `Tip Amount: $${tipAmount.toFixed(2)}`;
+            tipResultDiv.classList.add('text-green-600');
+
+            totalBillResultDiv.textContent = `Total Bill: $${totalBill.toFixed(2)}`;
+            totalBillResultDiv.classList.add('text-purple-600');
+
+            perPersonResultDiv.textContent = `Amount per person: $${amountPerPerson.toFixed(2)}`;
+            perPersonResultDiv.classList.add('text-blue-600');
+        }
+
+        function resetTipCalculator() {
+            document.getElementById('billAmount').value = '';
+            document.getElementById('tipPercentage').value = '';
+            document.getElementById('numPeople').value = '';
+
+            document.getElementById('tipResult').textContent = '';
+            document.getElementById('totalBillResult').textContent = '';
+            document.getElementById('perPersonResult').textContent = '';
+
+            // Clear any error/result specific colors
+            document.getElementById('tipResult').classList.remove('text-red-600', 'text-green-600');
+            document.getElementById('totalBillResult').classList.remove('text-red-600', 'text-purple-600');
+            document.getElementById('perPersonResult').classList.remove('text-red-600', 'text-blue-600');
+        }
+
+
+        // --- Random Password Generator Functions ---
+        function generatePassword() {
+            const length = parseInt(document.getElementById('passwordLength').value);
+            const includeUppercase = document.getElementById('includeUppercase').checked;
+            const includeLowercase = document.getElementById('includeLowercase').checked;
+            const includeNumbers = document.getElementById('includeNumbers').checked;
+            const includeSymbols = document.getElementById('includeSymbols').checked;
+
+            const generatedPasswordDiv = document.getElementById('generatedPassword');
+            const copyPasswordBtn = document.getElementById('copyPasswordBtn');
+            const copyMessageDiv = document.getElementById('copyMessage');
+
+            generatedPasswordDiv.textContent = '';
+            copyMessageDiv.textContent = '';
+            copyPasswordBtn.classList.add('hidden'); // Hide copy button initially
+            generatedPasswordDiv.classList.remove('text-red-600', 'text-green-600');
+
+            if (isNaN(length) || length < 4 || length > 64) {
+                generatedPasswordDiv.textContent = 'Password length must be between 4 and 64.';
+                generatedPasswordDiv.classList.add('text-red-600');
+                return;
+            }
+
+            let characters = '';
+            if (includeUppercase) characters += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (includeLowercase) characters += 'abcdefghijklmnopqrstuvwxyz';
+            if (includeNumbers) characters += '0123456789';
+            if (includeSymbols) characters += '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+
+            if (characters.length === 0) {
+                generatedPasswordDiv.textContent = 'Please select at least one character type.';
+                generatedPasswordDiv.classList.add('text-red-600');
+                return;
+            }
+
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * characters.length);
+                password += characters[randomIndex];
+            }
+
+            generatedPasswordDiv.textContent = password;
+            generatedPasswordDiv.classList.add('text-green-600');
+            copyPasswordBtn.classList.remove('hidden'); // Show copy button
+        }
+
+        function copyPassword() {
+            const generatedPasswordDiv = document.getElementById('generatedPassword');
+            const copyMessageDiv = document.getElementById('copyMessage');
+            const passwordText = generatedPasswordDiv.textContent;
+
+            if (passwordText) {
+                try {
+                    // Use document.execCommand('copy') as navigator.clipboard.writeText() might not work in some iframe environments
+                    const textarea = document.createElement('textarea');
+                    textarea.value = passwordText;
+                    textarea.style.position = 'fixed'; // Prevent scrolling to bottom of page in MS Edge.
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+
+                    copyMessageDiv.textContent = 'Password copied to clipboard!';
+                    copyMessageDiv.classList.remove('text-red-600');
+                    copyMessageDiv.classList.add('text-green-600');
+                    setTimeout(() => { copyMessageDiv.textContent = ''; }, 2000); // Clear message after 2 seconds
+                } catch (err) {
+                    copyMessageDiv.textContent = 'Failed to copy password. Please copy manually.';
+                    copyMessageDiv.classList.remove('text-green-600');
+                    copyMessageDiv.classList.add('text-red-600');
+                    console.error('Failed to copy text: ', err);
+                }
+            }
+        }
+
+        function resetPasswordGenerator() {
+            document.getElementById('passwordLength').value = '12'; // Reset to default
+            document.getElementById('includeUppercase').checked = true;
+            document.getElementById('includeLowercase').checked = true;
+            document.getElementById('includeNumbers').checked = true;
+            document.getElementById('includeSymbols').checked = true;
+
+            document.getElementById('generatedPassword').textContent = '';
+            document.getElementById('copyPasswordBtn').classList.add('hidden'); // Hide copy button
+            document.getElementById('copyMessage').textContent = '';
+
+            // Clear any error/result specific colors
+            document.getElementById('generatedPassword').classList.remove('text-red-600', 'text-green-600');
+            document.getElementById('copyMessage').classList.remove('text-red-600', 'text-green-600');
+        }
+
+        // --- Coin Flipper Functions ---
+        function flipCoin() {
+            const coinResultDiv = document.getElementById('coinResult');
+            const outcomes = ['Heads', 'Tails'];
+            const result = outcomes[Math.floor(Math.random() * outcomes.length)];
+
+            // Set the coin emoji initially
+            coinResultDiv.textContent = '🪙';
+            coinResultDiv.classList.remove('text-red-600', 'text-blue-600'); // Remove previous result colors
+            coinResultDiv.classList.add('flipping');
+
+            // Set a timeout to display the result after the animation
+            setTimeout(() => {
+                coinResultDiv.textContent = result;
+                coinResultDiv.classList.remove('flipping'); // Remove animation class
+                coinResultDiv.classList.add('text-blue-600'); // Add result color
+            }, 500); // Match this duration with the CSS animation duration
+        }
+
+        function resetCoinFlipper() {
+            const coinResultDiv = document.getElementById('coinResult');
+            coinResultDiv.textContent = '';
+            coinResultDiv.classList.remove('flipping', 'text-blue-600'); // Remove animation and result color
+        }
+    </script>
+</body>
+</html>
